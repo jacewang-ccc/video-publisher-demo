@@ -1,0 +1,153 @@
+{
+  "userDefaults": {
+    "city": "深圳",
+    "visibility": "public",
+    "saveAllowed": false,
+    "cover": {
+      "horizontalMode": "auto_crop"
+    }
+  },
+  "schedulePolicy": {
+    "baseDateMode": "manual",
+    "platformTimes": {
+      "douyin": { "offsetDays": 0, "time": "20:00" },
+      "xiaohongshu": { "offsetDays": 1, "time": "10:00" },
+      "channels": { "offsetDays": 1, "time": "12:00" },
+      "bilibili": { "offsetDays": 1, "time": "18:00" }
+    }
+  },
+  "taxonomy": {
+    "roots": [
+      {
+        "id": "daily",
+        "name": "日更",
+        "children": [
+          { "id": "daily_expression", "name": "表达" },
+          { "id": "daily_english", "name": "英语" },
+          { "id": "daily_singing", "name": "唱歌" },
+          { "id": "daily_meditation", "name": "冥想" },
+          { "id": "daily_sports", "name": "运动" },
+          { "id": "daily_reading", "name": "阅读" }
+        ]
+      },
+      {
+        "id": "sideline",
+        "name": "副线",
+        "children": [
+          { "id": "sideline_ai", "name": "AI类" },
+          { "id": "sideline_speech", "name": "口才类" },
+          { "id": "sideline_book", "name": "讲书" }
+        ]
+      },
+      {
+        "id": "mainline",
+        "name": "主线",
+        "children": [
+          { "id": "mainline_chat", "name": "碎碎念" }
+        ]
+      }
+    ]
+  },
+  "bundles": [
+    {
+      "id": "bundle_daily_default",
+      "name": "日更默认（模板优先）",
+      "match": { "taxonomyPrefix": "daily" },
+      "modules": [
+        "extract.basicVars",
+        "gen.title.template.daily",
+        "gen.desc.template.daily",
+        "gen.tags.rules.default",
+        "val.douyin.basic",
+        "fix.truncate.title",
+        "fix.trim.tags",
+        "final.defaults.douyin",
+        "final.declaration.byLabels"
+      ]
+    },
+    {
+      "id": "bundle_sideline_default",
+      "name": "副线默认（可切AI）",
+      "match": { "taxonomyPrefix": "sideline" },
+      "modules": [
+        "extract.basicVars",
+        "gen.title.template.sideline",
+        "gen.desc.template.sideline",
+        "gen.tags.rules.default",
+        "val.douyin.basic",
+        "fix.truncate.title",
+        "fix.trim.tags",
+        "final.defaults.douyin",
+        "final.declaration.byLabels"
+      ]
+    }
+  ],
+  "templates": {
+    "title": {
+      "daily": ["打卡第{day_n}天｜{daily_theme}｜{hook}"],
+      "sideline": ["{topic}｜{hook}"],
+      "mainline": ["{topic}"]
+    },
+    "description": {
+      "daily": ["{desc}"],
+      "sideline": ["{desc}"],
+      "mainline": ["{desc}"]
+    },
+    "tags": {
+      "fixed": ["小X计划", "自我成长", "个人管理"]
+    }
+  },
+  "platformConstraints": {
+    "douyin": {
+      "titleMax": 30,
+      "descriptionMax": 1000,
+      "schedule": { "minLeadHours": 2, "maxAheadDays": 14 }
+    }
+  },
+  "automationDefaults": [
+    {
+      "id": "auto_daily",
+      "enabled": true,
+      "priority": 10,
+      "match": { "subThemePrefix": "daily_" },
+      "defaults": { "titleMode": "template", "descriptionMode": "template", "tagsMode": "template" }
+    },
+    {
+      "id": "auto_sideline",
+      "enabled": true,
+      "priority": 10,
+      "match": { "subThemePrefix": "sideline_" },
+      "defaults": { "titleMode": "template", "descriptionMode": "ai", "tagsMode": "template" }
+    },
+    {
+      "id": "auto_mainline",
+      "enabled": true,
+      "priority": 10,
+      "match": { "subThemePrefix": "mainline_" },
+      "defaults": { "titleMode": "manual", "descriptionMode": "manual", "tagsMode": "template" }
+    }
+  ],
+  "automationPipelines": [
+    {
+      "id": "pipe_daily_expression_douyin_title_v1",
+      "enabled": true,
+      "priority": 100,
+      "match": { "subThemeId": "daily_expression" },
+      "platforms": ["douyin"],
+      "field": "title",
+      "steps": [
+        { "id": "s1", "type": "fixed", "text": "Day" },
+        { "id": "s2", "type": "var", "var": "day_n" },
+        { "id": "s3", "type": "fixed", "text": "| " },
+        {
+          "id": "s4",
+          "type": "choice",
+          "label": "标题后半句",
+          "selectionMode": "manual",
+          "options": ["坚持表达", "坚持练嘴", "坚持表达能力提升", "表达提升"]
+        }
+      ]
+    }
+  ],
+  "rules": []
+}

@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "Publisher Orchestrator (MVP)",
+  "version": "0.1.0",
+  "description": "Prepare + Commit publishing via real platform pages (MVP scaffold).",
+  "permissions": ["tabs", "storage", "scripting"],
+  "host_permissions": [
+    "https://creator.douyin.com/*",
+    "https://creator.xiaohongshu.com/*",
+    "https://channels.weixin.qq.com/*",
+    "https://member.bilibili.com/*",
+    "http://localhost/*",
+    "http://localhost:5173/*"
+  ],
+  "background": { "service_worker": "sw.js" },
+  "content_scripts": [
+    {
+      "matches": ["http://localhost:5173/*", "http://localhost/*"],
+      "js": ["webpanel.content.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://creator.douyin.com/*"],
+      "js": ["connectors/douyin.content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": { "default_title": "Publisher Orchestrator" },
+  "web_accessible_resources": [
+    {
+      "resources": ["bridge.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

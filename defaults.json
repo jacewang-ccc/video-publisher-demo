@@ -1,0 +1,67 @@
+{
+  "version": "0.2.0",
+  "taxonomy": {
+    "majorThemes": [
+      {
+        "id": "daily",
+        "label": "日更",
+        "subThemes": [
+          { "id": "daily_expression", "label": "表达" },
+          { "id": "daily_english", "label": "英语" },
+          { "id": "daily_singing", "label": "唱歌" },
+          { "id": "daily_meditation", "label": "冥想" },
+          { "id": "daily_sports", "label": "运动" },
+          { "id": "daily_reading", "label": "阅读" }
+        ]
+      },
+      {
+        "id": "sideline",
+        "label": "副线",
+        "subThemes": [
+          { "id": "sideline_ai", "label": "AI类" },
+          { "id": "sideline_talk", "label": "口才类" },
+          { "id": "sideline_books", "label": "讲书" }
+        ]
+      },
+      { "id": "mainline", "label": "主线", "subThemes": [{ "id": "mainline_rant", "label": "碎碎念" }] }
+    ]
+  },
+  "platforms": [
+    { "id": "douyin", "label": "抖音" },
+    { "id": "xiaohongshu", "label": "小红书" },
+    { "id": "channels", "label": "视频号" },
+    { "id": "bilibili", "label": "哔哩哔哩" }
+  ],
+  "fields": [
+    { "id": "title", "label": "标题" },
+    { "id": "desc", "label": "简介" },
+    { "id": "tags", "label": "tag" }
+  ],
+  "pipelines": [
+    {
+      "id": "p_daily_expression_douyin_title_v1",
+      "enabled": true,
+      "priority": 100,
+      "scope": { "subThemeId": "daily_expression", "platformId": "douyin", "fieldId": "title" },
+      "steps": [
+        { "id": "s1", "type": "fixed", "text": "Day" },
+        { "id": "s2", "type": "var", "key": "day_n", "label": "打卡天数" },
+        { "id": "s3", "type": "fixed", "text": "| " },
+        {
+          "id": "s4",
+          "type": "choice",
+          "label": "标题后半句",
+          "mode": "manual",
+          "options": ["坚持表达", "坚持练嘴", "坚持表达能力提升", "表达提升"]
+        }
+      ]
+    }
+  ],
+  "schedulePolicy": {
+    "douyin": { "offsetDays": 0, "time": "20:00" },
+    "xiaohongshu": { "offsetDays": 1, "time": "10:00" },
+    "channels": { "offsetDays": 1, "time": "12:00" },
+    "bilibili": { "offsetDays": 1, "time": "18:00" }
+  }
+}
+

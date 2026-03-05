@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PublishSnapshot",
+  "type": "object",
+  "required": ["id", "createdAt", "baseDate", "platforms"],
+  "properties": {
+    "id": { "type": "string" },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "baseDate": { "type": "string", "format": "date" },
+    "platforms": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["fields", "status"],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["ready_to_prepare", "preparing", "prepared", "needs_user_action", "failed", "committing", "committed"]
+          },
+          "fields": {
+            "type": "object",
+            "required": ["scheduleDateTime", "title", "description", "tags", "topics", "settings", "declaration", "cover"],
+            "properties": {
+              "scheduleDateTime": { "type": "string", "format": "date-time" },
+              "title": { "type": "string" },
+              "description": { "type": "string" },
+              "tags": { "type": "array", "items": { "type": "string" } },
+              "topics": { "type": "array", "items": { "type": "string" } },
+              "collection": { "type": ["string", "null"] },
+              "settings": {
+                "type": "object",
+                "required": ["visibility", "saveAllowed"],
+                "properties": {
+                  "visibility": { "type": "string", "enum": ["public", "friends", "private"] },
+                  "saveAllowed": { "type": "boolean" }
+                }
+              },
+              "declaration": {
+                "type": "object",
+                "required": ["type"],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": ["self_shot", "ai_generated", "network_sourced", "may_discomfort", "fictional", "dangerous"]
+                  },
+                  "shootCity": { "type": ["string", "null"] },
+                  "shootDate": { "type": ["string", "null"], "format": "date" }
+                }
+              },
+              "cover": {
+                "type": "object",
+                "required": ["verticalMode", "horizontalMode"],
+                "properties": {
+                  "verticalMode": { "type": "string", "enum": ["upload"] },
+                  "horizontalMode": { "type": "string", "enum": ["auto_crop", "upload_if_provided", "always_upload"] }
+                }
+              }
+            }
+          },
+          "changeLog": { "type": "array", "items": { "type": "string" } },
+          "errors": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    }
+  }
+}
+

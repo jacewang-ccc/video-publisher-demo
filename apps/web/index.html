@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>发布面板（MVP）</title>
+    <style>
+      :root { --bg:#f6f7fb; --card:#ffffff; --muted:#667085; --text:#101828; --ok:#039855; --warn:#dc6803; --bad:#d92d20; --btn:#2563eb; --border:#e4e7ec; --input:#ffffff; }
+      body { margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; background:var(--bg); color:var(--text); }
+      header { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; gap:12px; }
+      main { display:grid; grid-template-columns: 360px 1fr; gap:16px; padding:16px; }
+      .card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px; box-shadow: 0 1px 2px rgba(16,24,40,.06); }
+      .tint-blue { background:#f4f8ff; border-color:#c7d7fe; }
+      .tint-green { background:#f3fff9; border-color:#b7e8cf; }
+      .tint-amber { background:#fffbf1; border-color:#fbd6a8; }
+      .tint-purple { background:#faf5ff; border-color:#e0c7ff; }
+      .sectionTitle { font-weight:700; }
+      label { display:block; font-size:12px; color:var(--muted); margin-top:10px; }
+      input, select, textarea { width:100%; padding:10px; border-radius:10px; border:1px solid var(--border); background:var(--input); color:var(--text); }
+      textarea { min-height:90px; resize:vertical; }
+      .row { display:flex; gap:10px; }
+      .row > * { flex:1; }
+      button { background:var(--btn); color:white; border:none; padding:10px 12px; border-radius:10px; cursor:pointer; }
+      button.secondary { background:transparent; border:1px solid var(--border); color:var(--text); }
+      button:disabled { opacity:.5; cursor:not-allowed; }
+      table { width:100%; border-collapse:collapse; font-size:13px; }
+      th, td { border-bottom:1px solid var(--border); padding:10px 8px; vertical-align:top; }
+      th { color:var(--muted); font-weight:600; text-align:left; }
+      .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; }
+      .ok { background:rgba(52,211,153,.15); color:var(--ok); }
+      .warn { background:rgba(251,191,36,.15); color:var(--warn); }
+      .bad { background:rgba(251,113,133,.15); color:var(--bad); }
+      .small { font-size:12px; color:var(--muted); }
+      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+      details { margin-top:6px; }
+      summary { cursor:pointer; color:var(--muted); }
+      .actions { display:flex; gap:10px; margin-top:12px; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        <div style="font-weight:700">发布面板（MVP）</div>
+        <div class="small">预览矩阵仅显示最终字段文本；锁定后扩展后台 Prepare；一键 Commit。</div>
+      </div>
+      <div class="actions" style="margin:0">
+        <button class="secondary" id="navPublish">发布</button>
+        <button class="secondary" id="navConfig">配置中心</button>
+      </div>
+      <div class="small mono" id="extStatus">Extension: unknown</div>
+    </header>
+    <main>
+      <section class="card" id="pagePublishLeft">
+        <div style="font-weight:700; margin-bottom:6px">创建内容（示例）</div>
+        <div class="small">
+          说明：当前是本地静态 MVP 演示版，文件会留在浏览器本次页面中（不上传到服务器）。
+          后续做“真实一键发布”时，扩展/本机助手需要能访问你选择的文件（通常用本机桥接/二次选择文件实现）。
+        </div>
+        <label>视频文件（可选）</label>
+        <input id="videoFile" type="file" accept="video/*" />
+        <div class="small mono" id="videoFileMeta">未选择</div>
+        <label>竖封面（可选）</label>
+        <input id="verticalCoverFile" type="file" accept="image/*" />
+        <div class="small mono" id="verticalCoverMeta">未选择</div>
+        <label>横封面（可选）</label>
+        <input id="horizontalCoverFile" type="file" accept="image/*" />
+        <div class="small mono" id="horizontalCoverMeta">未选择</div>
+
+        <label>大主题</label>
+        <div class="row">
+          <select id="majorTheme"></select>
+          <button class="secondary" id="btnAddMajorTheme" type="button">新建大主题</button>
+        </div>
+        <label>子主题</label>
+        <div class="row">
+          <select id="subTheme"></select>
+          <button class="secondary" id="btnAddSubTheme" type="button">新建子主题</button>
+        </div>
+
+        <div id="metaPanel" style="display:none">
+          <label>基准日期（你每次手动选，默认今天）</label>
+          <input id="baseDate" type="date" />
+
+          <details style="margin-top:10px">
+            <summary>更多输入（可选，后续会按子主题反显）</summary>
+            <div class="row">
+              <div>
+                <label>是否含AI片段</label>
+                <select id="hasAi">
+                  <option value="no">否</option>
+                  <option value="yes">是</option>
+                </select>
+              </div>
+              <div>
+                <label>日更主题（可选）</label>
+                <select id="dailyTheme">
+                  <option value="">（不指定）</option>
+                  <option value="表达">表达</option>
+                  <option value="英语">英语</option>
+                  <option value="唱歌">唱歌</option>
+                  <option value="冥想">冥想</option>
+                  <option value="运动">运动</option>
+                  <option value="阅读">阅读</option>
+                </select>
+              </div>
+            </div>
+
+            <label>主题/关键词（可选）</label>
+            <input id="topic" placeholder="例如：表达 / 讲书：xxx / AI工具：xxx" />
+
+            <label>钩子 hook（可选，标题里用）</label>
+            <input id="hook" placeholder="例如：记录一下 / 今天学到一个点…" />
+
+            <div class="row">
+              <div>
+                <label>打卡天数 day_n（仅日更常用）</label>
+                <input id="dayN" type="number" min="1" placeholder="例如：12" />
+              </div>
+              <div>
+                <label>核心想法/补充信息（可选）</label>
+                <input id="coreIdea" placeholder="例如：今天学到的一个点…" />
+              </div>
+            </div>
+          </details>
+        </div>
+
+        <div class="card tint-amber" id="autoInputsPanel" style="padding:12px; margin-top:12px; display:none">
+          <div class="sectionTitle">自动化输入（按当前子主题反显）</div>
+          <div class="small">这里会列出：这次生成预览前，你需要填写的变量、以及需要你手选的下拉项。</div>
+          <div class="small mono" id="autoInputsNeeds" style="margin-top:8px">（请先选择子主题）</div>
+          <div style="margin-top:10px; overflow:auto">
+            <table id="autoInputsChoices">
+              <thead>
+                <tr>
+                  <th>平台</th>
+                  <th>功能</th>
+                  <th>下拉项</th>
+                  <th>选择</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="small" style="margin-top:12px">
+          自动化流程会在你选择子主题后，按配置中心的“流程”自动生成并体现在右侧预览矩阵里；目前发布页不展示流程细节。
+        </div>
+
+        <div class="actions">
+          <button id="btnGenerate">生成预览矩阵</button>
+          <button class="secondary" id="btnReset">清空</button>
+        </div>
+        <details>
+          <summary>说明（MVP示例）</summary>
+          <div class="small">
+            这个页面先用“模板+规则”的简化逻辑演示：真实版本会从配置中心读取分类/模板/Bundle。
+          </div>
+        </details>
+      </section>
+
+      <section class="card" id="pagePublishRight">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+          <div>
+            <div style="font-weight:700">多平台预览矩阵（最终字段文本）</div>
+            <div class="small">先锁定快照并后台 Prepare；全部就绪后可一键最终发布。</div>
+          </div>
+          <div class="actions" style="margin:0">
+            <button id="btnLock" disabled>锁定并准备发布</button>
+            <button id="btnCommit" disabled>最终发布（全部平台）</button>
+          </div>
+        </div>
+        <div class="small mono" id="snapshotInfo" style="margin-top:10px">snapshot: none</div>
+        <div style="margin-top:10px; overflow:auto">
+          <table id="matrix">
+            <thead>
+              <tr>
+                <th>平台</th>
+                <th>发布时间</th>
+                <th>封面</th>
+                <th>标题</th>
+                <th>简介</th>
+                <th>tag</th>
+                <th>声明</th>
+                <th>设置</th>
+                <th>校验</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div id="log" class="small" style="margin-top:10px"></div>
+      </section>
+
+      <section class="card" id="pageConfig" style="display:none; grid-column: 1 / -1;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+          <div>
+            <div style="font-weight:700">配置中心（MVP）</div>
+            <div class="small">你不需要懂代码：这里改完，生成与预览会立刻按新规则运行（保存在本机浏览器）。</div>
+          </div>
+          <div class="actions" style="margin:0">
+            <button class="secondary" id="btnExportConfig">导出配置</button>
+            <button class="secondary" id="btnImportConfig">导入配置</button>
+            <button class="secondary" id="btnResetConfig">恢复默认</button>
+            <button id="btnSaveConfig">保存</button>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:12px">
+          <div class="card tint-blue" style="padding:12px">
+            <div class="sectionTitle">默认偏好</div>
+            <label>默认拍摄城市</label>
+            <input id="cfgCity" placeholder="例如：深圳" />
+            <label>默认可见性</label>
+            <select id="cfgVisibility">
+              <option value="public">公开</option>
+              <option value="friends">好友可见</option>
+              <option value="private">仅自己可见</option>
+            </select>
+            <label>默认允许保存</label>
+            <select id="cfgSaveAllowed">
+              <option value="false">不允许</option>
+              <option value="true">允许</option>
+            </select>
+          </div>
+
+          <div class="card tint-green" style="padding:12px">
+            <div class="sectionTitle">排期规则（基准日期 + 偏移天数 + 时间）</div>
+            <div class="small">你每次在发布页选“基准日期”，这里控制各平台默认几点发布。</div>
+            <label>抖音（当天）</label>
+            <input id="cfgTimeDouyin" placeholder="20:00" />
+            <label>小红书（次日）</label>
+            <input id="cfgTimeXhs" placeholder="10:00" />
+            <label>视频号（次日）</label>
+            <input id="cfgTimeChannels" placeholder="12:00" />
+            <label>B站（次日）</label>
+            <input id="cfgTimeBili" placeholder="18:00" />
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:12px">
+          <div class="card tint-amber" style="padding:12px">
+            <div class="sectionTitle">固定 tag（逗号分隔）</div>
+            <label>固定 tag</label>
+            <input id="cfgFixedTags" placeholder="小X计划,自我成长,个人管理" />
+            <div class="small">生成时会把日更主题也追加为一个 tag（可在后续版本做开关）。</div>
+          </div>
+          <div class="card tint-purple" style="padding:12px">
+            <div class="sectionTitle">模板（MVP简化）</div>
+            <label>日更标题模板</label>
+            <input id="cfgTplDailyTitle" placeholder="打卡第{day_n}天｜{daily_theme}｜{hook}" />
+            <label>副线标题模板</label>
+            <input id="cfgTplSidelineTitle" placeholder="{topic}｜{hook}" />
+            <label>主线标题模板</label>
+            <input id="cfgTplMainlineTitle" placeholder="{topic}" />
+            <div class="small mono">可用变量：{day_n} {daily_theme} {topic} {hook}</div>
+          </div>
+        </div>
+
+        <div class="card tint-blue" style="padding:12px; margin-top:12px">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+            <div>
+              <div class="sectionTitle">自动化流程配置（按 子主题 × 平台 × 功能）</div>
+              <div class="small">
+                你可以为“某个子主题 + 某个平台 + 某个功能（标题/简介/tag）”定义一条自动化流程：
+                固定模板、随机短语、规则变量（如打卡天数）、AI占位、手动等。
+              </div>
+            </div>
+            <div class="actions" style="margin:0">
+              <button class="secondary" id="btnAddFlow">新增流程</button>
+            </div>
+          </div>
+
+          <div class="row" style="margin-top:10px">
+            <div>
+              <label>子主题</label>
+              <select id="flowSubTheme"></select>
+            </div>
+            <div>
+              <label>平台</label>
+              <select id="flowPlatform">
+                <option value="*">全部</option>
+                <option value="douyin">抖音</option>
+                <option value="xiaohongshu">小红书</option>
+                <option value="channels">视频号</option>
+                <option value="bilibili">B站</option>
+              </select>
+            </div>
+            <div>
+              <label>功能（颗粒度）</label>
+              <select id="flowField">
+                <option value="title">标题</option>
+                <option value="description">简介</option>
+                <option value="tags">tag</option>
+              </select>
+            </div>
+            <div>
+              <label>优先级</label>
+              <input id="flowPriority" type="number" value="0" />
+            </div>
+          </div>
+
+          <div class="small" style="margin-top:6px">
+            优先级的含义：当同一个“子主题+平台+功能”存在多条流程时，系统选优先级最高的一条。
+            例如“日更通用=10”，“表达×抖音×标题专用=100”，选表达时会用100那条覆盖通用。
+          </div>
+
+          <div class="card tint-purple" style="padding:12px; margin-top:10px">
+            <div class="sectionTitle">已配置的流程</div>
+            <div class="small">这里能看到哪些流程已启用。点“编辑”就会在下方出现编辑器与预览。</div>
+            <div style="margin-top:10px; overflow:auto">
+              <table id="flowsTable">
+                <thead>
+                  <tr>
+                    <th>启用</th>
+                    <th>优先级</th>
+                    <th>子主题</th>
+                    <th>平台</th>
+                    <th>功能</th>
+                    <th>概要</th>
+                    <th>单元数</th>
+                    <th>编辑</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="flowEditorArea" style="display:none">
+            <div class="card tint-green" style="padding:12px; margin-top:10px">
+              <div class="sectionTitle">正在编辑</div>
+              <div class="small mono" id="editingFlowMeta" style="margin-top:8px">未选择流程</div>
+              <div class="actions">
+                <button id="btnSaveAndExit" type="button">保存并退出编辑</button>
+                <button class="secondary" id="btnClearEditing" type="button">退出编辑</button>
+              </div>
+              <div class="small" style="margin-top:6px">编辑顺序：新增单元 → 上移/下移调顺序 → 修改内容 → 保存。</div>
+            </div>
+
+            <div class="card tint-blue" style="padding:12px; margin-top:10px">
+              <div class="sectionTitle">单元编辑器（列表版拖拽）</div>
+              <div class="small">单元类型：固定文本 / 变量 / 下拉选择。下拉选项只有1个时等同固定。</div>
+              <div class="row" style="margin-top:10px; align-items:flex-end">
+                <div>
+                  <label>新增单元类型</label>
+                  <select id="stepType">
+                    <option value="fixed">固定文本</option>
+                    <option value="var">变量</option>
+                    <option value="choice">下拉选择</option>
+                  </select>
+                </div>
+                <div class="actions" style="margin:0">
+                  <button class="secondary" id="btnAddStep">新增单元</button>
+                </div>
+              </div>
+
+              <div style="margin-top:10px; overflow:auto">
+                <table id="stepsTable">
+                  <thead>
+                    <tr>
+                      <th>顺序</th>
+                      <th>类型</th>
+                      <th>配置</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+              <div class="small mono">可用变量：{day_n} {daily_theme} {topic} {hook}</div>
+            </div>
+
+            <div class="card tint-amber" style="padding:12px; margin-top:10px">
+              <div class="sectionTitle">预览（反显到发布页后的最终效果）</div>
+              <div class="small">你可以在这里看到类似 <span class="mono">Day{day_n}| 坚持表达</span> 的最终结果。</div>
+              <div class="row" style="margin-top:10px">
+                <div>
+                  <label>day_n</label>
+                  <input id="pvDayN" type="number" min="1" value="12" />
+                </div>
+                <div>
+                  <label>daily_theme</label>
+                  <input id="pvDailyTheme" value="表达" />
+                </div>
+                <div>
+                  <label>topic</label>
+                  <input id="pvTopic" value="表达" />
+                </div>
+                <div>
+                  <label>hook</label>
+                  <input id="pvHook" value="记录一下" />
+                </div>
+              </div>
+              <div class="card" style="padding:12px; margin-top:10px">
+                <div class="small">结构预览（发布页会出现哪些输入项）</div>
+                <div class="mono" id="pvStructure" style="margin-top:6px">（未选择流程）</div>
+                <div class="small" style="margin-top:10px">样例预览（渲染后的最终文本）</div>
+                <div class="mono" id="pvOutput" style="margin-top:6px">（未选择流程）</div>
+                <div class="small" style="margin-top:10px">发布页需要你填写/选择</div>
+                <div class="mono" id="pvNeeds" style="margin-top:6px">（未选择流程）</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="small">
+            说明：选择子主题后，发布页会自动按这里的流程生成标题/简介/tag；你仍可在预览矩阵里手动改每个平台的最终文本。
+          </div>
+        </div>
+
+        <div class="card" style="padding:12px; margin-top:12px">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+            <div>
+              <div style="font-weight:700">主题管理（大主题/子主题，可新增）</div>
+              <div class="small">这里新增的主题，会立刻出现在发布页的下拉框。</div>
+            </div>
+            <div class="actions" style="margin:0">
+              <button class="secondary" id="btnTaxAddMajor">新增大主题</button>
+              <button class="secondary" id="btnTaxAddSub">新增子主题</button>
+            </div>
+          </div>
+          <div class="row" style="margin-top:10px">
+            <div>
+              <label>选择大主题</label>
+              <select id="taxMajorSelect"></select>
+            </div>
+            <div>
+              <label>新名称</label>
+              <input id="taxNewName" placeholder="例如：副线2 / 新主题…" />
+            </div>
+          </div>
+          <div class="small">新增子主题时，会加到当前选中的大主题下面。</div>
+        </div>
+
+        <details style="margin-top:12px">
+          <summary>高级：查看/编辑完整配置 JSON（不建议新手直接改）</summary>
+          <textarea id="cfgRaw" class="mono" style="min-height:220px"></textarea>
+          <div class="small">如果这里填错 JSON，会导致配置无法保存；你可以点“恢复默认”。</div>
+        </details>
+      </section>
+    </main>
+    <script src="./main.js"></script>
+  </body>
+</html>
