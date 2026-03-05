@@ -33,3 +33,6 @@ python3 -m http.server 5173
 
 The demo simulates “Prepare” and “Commit” flows and shows where real connectors integrate.
 
+## GitHub Pages (public demo)
+
+If GitHub Pages is enabled for this repository, open the deployed site and load the extension separately for the full end-to-end demo.
