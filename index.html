@@ -4,6 +4,19 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>发布面板（MVP）</title>
+    <script>
+      // GitHub Pages sometimes serves the site at `/repo` (no trailing slash), which breaks
+      // relative asset URLs (JS/JSON) and makes the page appear "unclickable".
+      // Force `/repo/` to keep relative paths stable.
+      (function () {
+        try {
+          var p = location.pathname || "";
+          if (!p.endsWith("/") && !p.endsWith(".html")) {
+            location.replace(p + "/" + location.search + location.hash);
+          }
+        } catch (_) {}
+      })();
+    </script>
     <style>
       :root { --bg:#f6f7fb; --card:#ffffff; --muted:#667085; --text:#101828; --ok:#039855; --warn:#dc6803; --bad:#d92d20; --btn:#2563eb; --border:#e4e7ec; --input:#ffffff; }
       body { margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; background:var(--bg); color:var(--text); }
@@ -339,4 +352,3 @@
     <script src="apps/web/main.js"></script>
   </body>
 </html>
-
